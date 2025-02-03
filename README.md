@@ -27,7 +27,7 @@ These custom commands are available to clients in the game:
 These custom commands are designed for server admins and can be executed through RCON (Remote Console):
 
 - **/rcon spoof [command]**: Spoof commands to send to clients (useful for administrative tasks).
-- **/rcon saveplayerpos [player_num]**: Save the position of a player and write it to the `q3ut4/player_positions.log` file.
+- **/rcon saveplayerpos [player_num]**: Save the position of a player.
 - **/rcon loadplayerpos [player_num] [x] [y] [z] [pitch] [yaw]**: Teleport a player to the specified position (x, y, z coordinates, pitch, and yaw).
 - **/rcon serv-infinitestamina [player_name]**: Enable infinite stamina for the specified player.
 - **/rcon serv-infinitewalljumps [player_name]**: Enable infinite wall jumps for the specified player.
