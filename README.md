@@ -26,7 +26,7 @@ These custom commands are available to clients in the game:
 
 These custom commands are designed for server admins and can be executed through RCON (Remote Console):
 
-- **/rcon spoof [command]**: Spoof commands to send to clients (useful for administrative tasks).
+- **/rcon spoof [player_name] [command]**: Spoof commands to send to clients (useful for administrative tasks).
 - **/rcon saveplayerpos [player_num]**: Save the position of a player.
 - **/rcon loadplayerpos [player_num] [x] [y] [z] [pitch] [yaw]**: Teleport a player to the specified position (x, y, z coordinates, pitch, and yaw).
 - **/rcon serv_infinitestamina [player_name]**: Enable infinite stamina for the specified player.
