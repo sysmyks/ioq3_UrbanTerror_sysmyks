@@ -67,6 +67,7 @@ cvar_t  *mod_freeSaving;
 cvar_t  *mod_loadSpeedCmd;
 cvar_t  *mod_ghostRadius;
 cvar_t	*sv_ghostOnRoundstart;
+cvar_t  *mod_checkClientGuid;
 
 cvar_t	*sv_demonotice;				// notice to print to a client being recorded server-side
 cvar_t  *sv_tellprefix;
@@ -1076,10 +1077,10 @@ SV_CalcPings
 Updates the cl->ping variables
 ===================
 */
-void SV_CalcPings( void ) {
+static void SV_CalcPings( void ) {
 	int			i, j;
 	client_t	*cl;
-	int			total, count;
+    int			total, count;
 	int			delta;
 	playerState_t	*ps;
 
@@ -1100,21 +1101,49 @@ void SV_CalcPings( void ) {
 
 		total = 0;
 		count = 0;
-		for ( j = 0 ; j < PACKET_BACKUP ; j++ ) {
-			if ( cl->frames[j].messageAcked <= 0 ) {
-				continue;
-			}
-			delta = cl->frames[j].messageAcked - cl->frames[j].messageSent;
-			count++;
-			total += delta;
-		}
+
+        // Treat unacknowledged frames when there is a later acknowledged frame as
+        // acknowledged at the same time as the later frame, instead of ignoring.
+        // This should more accurately account for ping increases in certain conditions such as packet loss.
+        int current_frame = cl->netchan.outgoingSequence - 1;
+        int current_ack_time = -1;
+        for ( j = 0 ; j < PACKET_BACKUP && current_frame > 0 ; j++ ) {
+            // Read frames backwards from latest to earliest
+            clientSnapshot_t *frame = &cl->frames[(current_frame--) & PACKET_MASK];
+
+            // Use the earliest valid ack time as current
+            if(frame->messageAcked != -1 && (current_ack_time == -1 || frame->messageAcked < current_ack_time)) {
+                current_ack_time = frame->messageAcked;
+            }
+
+            if(current_ack_time != -1) {
+                delta = current_ack_time - frame->messageSent;
+                count++;
+                total += delta;
+            }
+        }
+
+#if 0
+        for ( j = 0 ; j < PACKET_BACKUP ; j++ ) {
+            if ( cl->frames[j].messageAcked == -1 ) {  // <= 0
+                continue;
+            }
+            delta = cl->frames[j].messageAcked - cl->frames[j].messageSent;
+            count++;
+            total += delta;
+        }
+#endif
+
 		if (!count) {
 			cl->ping = 999;
 		} else {
-			cl->ping = total/count;
+            cl->ping = total/count;
 			if ( cl->ping > 999 ) {
 				cl->ping = 999;
 			}
+            if ( cl->ping < 1 ) {
+                cl->ping = 1; // minimum ping for humans
+            }
 		}
 
 		// let the game dll know about the ping

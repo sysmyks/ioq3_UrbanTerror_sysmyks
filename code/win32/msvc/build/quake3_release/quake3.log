@@ -1,0 +1,72 @@
+﻿  cl_avi.c
+  cl_cgame.c
+  cl_cin.c
+  cl_console.c
+  cl_curl.c
+  cl_input.c
+  cl_keys.c
+  cl_main.c
+  cl_net_chan.c
+  cl_parse.c
+  cl_scrn.c
+  cl_ui.c
+  snd_dmahd.c
+  cm_load.c
+  cm_patch.c
+  cm_polylib.c
+  cm_test.c
+  cm_trace.c
+  cmd.c
+  common.c
+  Génération de code en cours...
+  Compilation en cours...
+  cvar.c
+  files.c
+  huffman.c
+  md4.c
+  md5.c
+  msg.c
+  net_chan.c
+  net_ip.c
+  puff.c
+  q_math.c
+  q_shared.c
+c:\users\gehuts\desktop\ioq3_update-main1\code\qcommon\q_shared.c(793): error C2084: la fonction 'int _vsnprintf(char *const ,const size_t,const char *const ,va_list)' a déjà un corps
+  c:\program files (x86)\windows kits\10\include\10.0.22621.0\ucrt\stdio.h(1402): note: voir la définition précédente de '_vsnprintf'
+  qal.c
+  snd_adpcm.c
+  snd_codec.c
+  snd_codec_ogg.c
+  snd_codec_wav.c
+  snd_dma.c
+  snd_main.c
+  snd_mem.c
+  snd_mix.c
+  Génération de code en cours...
+  Compilation en cours...
+  snd_openal.c
+  snd_wavelet.c
+  sv_bot.c
+  sv_ccmds.c
+  sv_client.c
+  sv_game.c
+c:\users\gehuts\desktop\ioq3_update-main1\code\server\sv_game.c(122): error C2036: 'void *' : taille inconnue
+  sv_init.c
+  sv_main.c
+c:\users\gehuts\desktop\ioq3_update-main1\code\server\sv_main.c(388): error C2036: 'void *' : taille inconnue
+  sv_net_chan.c
+  sv_snapshot.c
+  sv_world.c
+  unzip.c
+  vm.c
+  vm_interpreted.c
+  vm_x86.c
+  win_input.c
+  win_main.c
+  win_shared.c
+  win_snd.c
+  win_syscon.c
+  Génération de code en cours...
+  Compilation en cours...
+  win_wndproc.c
+  Génération de code en cours...

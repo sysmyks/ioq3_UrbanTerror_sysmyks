@@ -627,9 +627,9 @@ void SV_SendMessageToClient( msg_t *msg, client_t *client ) {
 	
 	// record information about the message
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSize = msg->cursize;
-    client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSent = Sys_Milliseconds(); // svs.time
+    client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageSent = svs.time; // Utiliser svs.time au lieu de Sys_Milliseconds()
 	client->frames[client->netchan.outgoingSequence & PACKET_MASK].messageAcked = -1;
-
+	
 	// send the datagram
 	SV_Netchan_Transmit( client, msg );	//msg->cursize, msg->data );
 

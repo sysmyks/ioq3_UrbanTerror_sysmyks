@@ -1575,7 +1575,6 @@ static void SV_CompleteMapName( char *args, int argNum ) {
 	}
 }*/
 
-
 /////////////////////////////////////////////////////////////////////
 // Name        : SV_Spoof_f
 // Description : Send a game client command as a specific client

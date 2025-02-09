@@ -203,11 +203,6 @@ void SV_GetUserinfo( int index, char *buffer, int bufferSize ) {
 	if ( index < 0 || index >= sv_maxclients->integer ) {
 		Com_Error (ERR_DROP, "SV_GetUserinfo: bad index %i\n", index);
 	}
-	// get the client's cg_ghost value if we are in jump mode
-	if (sv_gametype->integer == GT_JUMP) {
-        svs.clients[index].cm.ghost = SV_IsClientGhost(&svs.clients[index]);
-    }
-	
 	Q_strncpyz( buffer, svs.clients[ index ].userinfo, bufferSize );
 }
 
@@ -918,6 +913,7 @@ void SV_Init (void) {
 	mod_enableHelpCmd = Cvar_Get("mod_enableHelpCmd", "1", CVAR_ARCHIVE);
 	sv_ghostOnRoundstart = Cvar_Get("sv_ghostOnRoundstart", "0", CVAR_ARCHIVE);
 	mod_ghostRadius = Cvar_Get("mod_ghostRadius", "80.0", CVAR_ARCHIVE);
+	mod_checkClientGuid = Cvar_Get ("mod_checkClientGuid", "1", CVAR_ARCHIVE);
 
 	sv_minRate = Cvar_Get ("sv_minRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );
 	sv_maxRate = Cvar_Get ("sv_maxRate", "0", CVAR_ARCHIVE | CVAR_SERVERINFO );

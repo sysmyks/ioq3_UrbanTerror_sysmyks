@@ -338,7 +338,7 @@ extern  cvar_t  *mod_enableHelpCmd;
 extern	cvar_t	*sv_demonotice;
 extern 	cvar_t 	*mod_freeSaving;
 extern 	cvar_t 	*sv_ghostOnRoundstart;
-
+extern  cvar_t  *mod_checkClientGuid;
 
 
 extern  cvar_t  *sv_sayprefix;

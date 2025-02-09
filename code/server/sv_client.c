@@ -91,6 +91,35 @@ void SV_GetChallenge(netadr_t from) {
 
 }
 
+/////////////////////////////////////////////////////////////////////
+// SV_ApproveGuid
+// --------------
+// A cl_guid string must have length 32 and consist of characters '0'
+// through '9' and 'A' through 'F'.
+/////////////////////////////////////////////////////////////////////
+qboolean SV_ApproveGuid(const char *guid) {
+
+    int    i;
+    int    length;
+    char   c;
+    
+    if (mod_checkClientGuid->integer > 0) {
+
+        length = strlen(guid); 
+        if (length != 32) { 
+            return qfalse; 
+        }
+
+        for (i = 31; i >= 0;) {
+            c = guid[i--];
+            if (!(('0' <= c && c <= '9') || ('A' <= c && c <= 'F'))) {
+                return qfalse;
+            }
+        }
+    }
+    return qtrue;
+}
+
 /*
 ====================
 SV_AuthorizeIpPacket
@@ -1322,15 +1351,54 @@ void SV_UserinfoChanged( client_t *cl ) {
 
 	if( len >= MAX_INFO_STRING )
 		SV_DropClient( cl, "userinfo string length exceeded" );
+		
 	else
 		Info_SetValueForKey( cl->userinfo, "ip", ip );
 	// get the client's cg_ghost value if we are in jump mode
     if (sv_gametype->integer == GT_JUMP) {
         cl->cm.ghost = SV_IsClientGhost(cl);
     }
+
 }
 
+/*
+==================
+SV_UpdateUserinfo_f
+==================
+*/
+void SV_UpdateUserinfo_f( client_t *cl ) {
+    
+	if ( (sv_floodProtect->integer) && (cl->state >= CS_ACTIVE) && (svs.time < cl->nextReliableUserTime) ) {
+		Q_strncpyz( cl->userinfobuffer, Cmd_Argv(1), sizeof(cl->userinfobuffer) );
+		SV_SendServerCommand(cl, "print \"^7Command ^1delayed ^7due to sv_floodprotect!\n\"");
+		return;
+	}
 
+    qboolean ghost = cl->cm.ghost; // Save here the current cg_ghost value in order to know after if it changed
+
+	cl->userinfobuffer[0]=0;
+	cl->nextReliableUserTime = svs.time + 5000;
+
+	Q_strncpyz( cl->userinfo, Cmd_Argv(1), sizeof(cl->userinfo) );
+
+	SV_UserinfoChanged(cl);
+
+	// call prog code to allow overrides
+	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients );
+
+    // get the client's cg_ghost value if we are in jump mode
+    if (sv_gametype->integer == GT_JUMP) {
+        cl->cm.ghost = SV_IsClientGhost(cl);
+        // display ghost mode status if it changed
+        if (ghost != cl->cm.ghost) {
+            if (cl->cm.ghost) {
+                SV_SendServerCommand(cl, "print \"^7Ghost Mode turned: [^2ON^7]\n\"");
+            } else {
+                SV_SendServerCommand(cl, "print \"^7Ghost Mode turned: [^1OFF^7]\n\"");
+            }
+        }
+    }
+}
 //sysmyks mod
 
 
@@ -1579,7 +1647,7 @@ void SV_HelpCmdsList_f(client_t* cl) {
         SV_SendServerCommand(cl, "print  \"^8----------------------------------------------------------------\n\"");
         SV_SendServerCommand(cl, "print  \"^8-    ^1/help           ^8-     ^2/playerlist     ^8-    ^2/cg_rgb        ^8-\n\"");
         SV_SendServerCommand(cl, "print  \"^8-    ^2/reconnect      ^8-                     ^8-    ^2/r_gamma       ^8-\n\"");
-        SV_SendServerCommand(cl, "print  \"^8-    ^2/disconnect     ^8-     ^1/svModInfo      ^8-    ^2/sensitivity   ^8-\n\"");
+        SV_SendServerCommand(cl, "print  \"^8-    ^2/disconnect     ^8-     ^1/modinfo      ^8-    ^2/sensitivity   ^8-\n\"");
         SV_SendServerCommand(cl, "print  \"^8-    ^2/connect        ^8-                     ^8-    ^2/bind          ^8-\n\"");
         SV_SendServerCommand(cl, "print  \"^8----------------------------------------------------------------\n\"");
         SV_SendServerCommand(cl, "print  \"^8--------------------------^7Game Commands^8-------------------------\n\"");
@@ -1623,52 +1691,14 @@ static ucmd_t ucmds[] = {
     {"savepos", SV_SavePosition_f},
     {"load", SV_LoadPosition_f},
     {"loadpos", SV_LoadPosition_f},
-	{"svModInfo", SV_ServerModInfo_f},
+	{"modinfo", SV_ServerModInfo_f},
     {"help", SV_HelpCmdsList_f},
 	{NULL, NULL}
 };
-
-/*
-==================
-SV_UpdateUserinfo_f
-==================
-*/
-void SV_UpdateUserinfo_f( client_t *cl ) {
-    gclient_t *gl;
-
-	//if ( (sv_floodProtect->integer) && (cl->state >= CS_ACTIVE) && (svs.time < cl->nextReliableUserTime) ) {
-	//	Q_strncpyz( cl->userinfobuffer, Cmd_Argv(1), sizeof(cl->userinfobuffer) );
-	//	SV_SendServerCommand(cl, "print \"^7Command ^1delayed ^7due to sv_floodprotect!\n\"");
-	//	return;
-	//}
-
-    qboolean ghost = cl->cm.ghost; // Save here the current cg_ghost value in order to know after if it changed
-
-    gl = (gclient_t *)SV_GameClientNum(cl - svs.clients);
-	//cl->userinfobuffer[0]=0;
-	//cl->nextReliableUserTime = svs.time + 5000;
-
-	Q_strncpyz( cl->userinfo, Cmd_Argv(1), sizeof(cl->userinfo) );
-
-	SV_UserinfoChanged( cl );
-
-	// call prog code to allow overrides
-	VM_Call( gvm, GAME_CLIENT_USERINFO_CHANGED, cl - svs.clients );
-
-    // get the client's cg_ghost value if we are in jump mode
-    if (sv_gametype->integer == GT_JUMP) {
-        cl->cm.ghost = SV_IsClientGhost(cl);
-        // display ghost mode status if it changed
-        if (ghost != cl->cm.ghost) {
-            if (cl->cm.ghost) {
-                SV_SendServerCommand(cl, "print \"^7Ghost Mode turned: [^2ON^7]\n\"");
-            } else {
-                SV_SendServerCommand(cl, "print \"^7Ghost Mode turned: [^1OFF^7]\n\"");
-            }
-        }
-    }
-}
-
+static ucmd_t ucmds_floodControl[] = {
+    
+    {NULL, NULL}
+};
 
 /*
 ==================
@@ -1758,9 +1788,21 @@ void SV_ExecuteClientCommand( client_t *cl, const char *s, qboolean clientOK ) {
 			VM_Call( gvm, GAME_CLIENT_COMMAND, cl - svs.clients );
 		}
 	}
-	else if (!bProcessed) {
-		Com_DPrintf( "client text ignored for %s: %s\n", cl->name, Cmd_Argv(0) );
-	}
+    if (!bProcessed) {
+        for (u = ucmds_floodControl; u->name; u++) {
+            if (!strcmp(Cmd_Argv(0), u->name)) {
+                // Vérifier le flood protect
+                if ((sv_floodProtect->integer) && (cl->state >= CS_ACTIVE) && 
+                    (svs.time < cl->nextReliableTime)) {
+                    SV_SendServerCommand(cl, "print \"^7Command ^1delayed ^7due to sv_floodprotect!\n\"");
+                    return;
+                }
+                u->func(cl);
+                bProcessed = qtrue;
+                break;
+            }
+        }
+    }
 }
 
 /*
@@ -1852,6 +1894,46 @@ void SV_ClientThink (client_t *cl, usercmd_t *cmd) {
 
 /*
 ==================
+SV_CalculateClientPing 
+Calculates the client ping based on message acknowledgement time
+==================
+*/
+static void SV_CalculateClientPing(client_t *client) {
+    int i;
+    int count;
+    int totalPing;
+    
+    count = 0;
+    totalPing = 0;
+
+    // Get ping samples from frames
+    for (i = 0; i < PACKET_BACKUP; i++) {
+        if (client->frames[i].messageAcked <= 0) {
+            continue;
+        }
+        
+        // Calculate ping for this frame
+        int ping = client->frames[i].messageAcked - client->frames[i].messageSent;
+        
+        // Ignore bogus values 
+        if (ping < 0 || ping > 999) {
+            continue;
+        }
+        
+        totalPing += ping;
+        count++;
+    }
+
+    // Calculate average ping
+    if (count > 0) {
+        client->ping = totalPing / count;
+    } else {
+        client->ping = 0;
+    }
+}
+
+/*
+==================
 SV_UserMove
 
 The message usually contains all the movement commands 
@@ -1862,7 +1944,7 @@ On very fast clients, there may be multiple usercmd packed into
 each of the backup packets.
 ==================
 */
-static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
+static void SV_UserMove( client_t *client, msg_t *msg, qboolean delta ) {
 	int			i, key;
 	int			cmdCount;
 	usercmd_t	nullcmd;
@@ -1870,9 +1952,9 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	usercmd_t	*cmd, *oldcmd;
 
 	if ( delta ) {
-		cl->deltaMessage = cl->messageAcknowledge;
+		client->deltaMessage = client->messageAcknowledge;
 	} else {
-		cl->deltaMessage = -1;
+		client->deltaMessage = -1;
 	}
 
 	cmdCount = MSG_ReadByte( msg );
@@ -1890,9 +1972,9 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	// use the checksum feed in the key
 	key = sv.checksumFeed;
 	// also use the message acknowledge
-	key ^= cl->messageAcknowledge;
+	key ^= client->messageAcknowledge;
 	// also use the last acknowledged server command in the key
-	key ^= Com_HashKey(cl->reliableCommands[ cl->reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ], 32);
+	key ^= Com_HashKey(client->reliableCommands[ client->reliableAcknowledge & (MAX_RELIABLE_COMMANDS-1) ], 32);
 
 	Com_Memset( &nullcmd, 0, sizeof(nullcmd) );
 	oldcmd = &nullcmd;
@@ -1903,37 +1985,38 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 	}
 
 	// save time for ping calculation
-	cl->frames[ cl->messageAcknowledge & PACKET_MASK ].messageAcked = svs.time;
-
+	client->frames[client->messageAcknowledge & PACKET_MASK].messageAcked = svs.time;
+	// Calculer le ping
+	SV_CalculateClientPing(client);
 	// TTimo
 	// catch the no-cp-yet situation before SV_ClientEnterWorld
 	// if CS_ACTIVE, then it's time to trigger a new gamestate emission
 	// if not, then we are getting remaining parasite usermove commands, which we should ignore
-	if (sv_pure->integer != 0 && cl->pureAuthentic == 0 && !cl->gotCP) {
-		if (cl->state == CS_ACTIVE)
+	if (sv_pure->integer != 0 && client->pureAuthentic == 0 && !client->gotCP) {
+		if (client->state == CS_ACTIVE)
 		{
 			// we didn't get a cp yet, don't assume anything and just send the gamestate all over again
-			Com_DPrintf( "%s: didn't get cp command, resending gamestate\n", cl->name);
-			SV_SendClientGameState( cl );
+			Com_DPrintf( "%s: didn't get cp command, resending gamestate\n", client->name);
+			SV_SendClientGameState( client );
 		}
 		return;
 	}			
 	
 	// if this is the first usercmd we have received
 	// this gamestate, put the client into the world
-	if ( cl->state == CS_PRIMED ) {
-		SV_ClientEnterWorld( cl, &cmds[0] );
+	if ( client->state == CS_PRIMED ) {
+		SV_ClientEnterWorld( client, &cmds[0] );
 		// the moves can be processed normaly
 	}
 	
 	// a bad cp command was sent, drop the client
-	if (sv_pure->integer != 0 && cl->pureAuthentic == 0) {		
-		SV_DropClient( cl, "Cannot validate pure client!");
+	if (sv_pure->integer != 0 && client->pureAuthentic == 0) {		
+		SV_DropClient( client, "Cannot validate pure client!");
 		return;
 	}
 
-	if ( cl->state != CS_ACTIVE ) {
-		cl->deltaMessage = -1;
+	if ( client->state != CS_ACTIVE ) {
+		client->deltaMessage = -1;
 		return;
 	}
 
@@ -1951,10 +2034,10 @@ static void SV_UserMove( client_t *cl, msg_t *msg, qboolean delta ) {
 		//}
 		// don't execute if this is an old cmd which is already executed
 		// these old cmds are included when cl_packetdup > 0
-		if ( cmds[i].serverTime <= cl->lastUsercmd.serverTime ) {
+		if ( cmds[i].serverTime <= client->lastUsercmd.serverTime ) {
 			continue;
 		}
-		SV_ClientThink (cl, &cmds[ i ]);
+		SV_ClientThink (client, &cmds[ i ]);
 	}
 }
 

@@ -248,7 +248,7 @@ qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message ) {
 #ifdef _DEBUG
 	recvfromCount++;		// performance check
 #endif
-	ret = recvfrom( ip_socket, net_message->data, net_message->maxsize, 0, (struct sockaddr *)&from, &fromlen );
+	ret = recvfrom( ip_socket, (char *)net_message->data, net_message->maxsize, 0, (struct sockaddr *)&from, &fromlen );
 	if (ret == SOCKET_ERROR)
 	{
 		err = socketError;
@@ -285,6 +285,7 @@ qboolean Sys_GetPacket( netadr_t *net_from, msg_t *net_message ) {
 	}
 
 	net_message->cursize = ret;
+	
 	return qtrue;
 }
 
@@ -556,13 +557,13 @@ void NET_OpenSocks( int port ) {
 	if ( rfc1929 ) {
 		buf[2] = 2;		// method #2 - method id #02: username/password
 	}
-	if ( send( socks_socket, buf, len, 0 ) == SOCKET_ERROR ) {
+	if ( send( socks_socket, (const char *)buf, len, 0 ) == SOCKET_ERROR ) {
 		Com_Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 		return;
 	}
 
 	// get the response
-	len = recv( socks_socket, buf, 64, 0 );
+	len = recv( socks_socket, (char *)buf, 64, 0 );
 	if ( len == SOCKET_ERROR ) {
 		Com_Printf( "NET_OpenSocks: recv: %s\n", NET_ErrorString() );
 		return;
@@ -601,13 +602,13 @@ void NET_OpenSocks( int port ) {
 		}
 
 		// send it
-		if ( send( socks_socket, buf, 3 + ulen + plen, 0 ) == SOCKET_ERROR ) {
+		if ( send( socks_socket, (const char *)buf, 3 + ulen + plen, 0 ) == SOCKET_ERROR ) {
 			Com_Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 			return;
 		}
 
 		// get the response
-		len = recv( socks_socket, buf, 64, 0 );
+		len = recv( socks_socket, (char *)buf, 64, 0 );
 		if ( len == SOCKET_ERROR ) {
 			Com_Printf( "NET_OpenSocks: recv: %s\n", NET_ErrorString() );
 			return;
@@ -629,13 +630,13 @@ void NET_OpenSocks( int port ) {
 	buf[3] = 1;		// address type: IPV4
 	*(int *)&buf[4] = INADDR_ANY;
 	*(short *)&buf[8] = htons( (short)port );		// port
-	if ( send( socks_socket, buf, 10, 0 ) == SOCKET_ERROR ) {
+	if ( send( socks_socket, (const char *)buf, 10, 0 ) == SOCKET_ERROR ) {
 		Com_Printf( "NET_OpenSocks: send: %s\n", NET_ErrorString() );
 		return;
 	}
 
 	// get the response
-	len = recv( socks_socket, buf, 64, 0 );
+	len = recv( socks_socket, (char *)buf, 64, 0 );
 	if( len == SOCKET_ERROR ) {
 		Com_Printf( "NET_OpenSocks: recv: %s\n", NET_ErrorString() );
 		return;
