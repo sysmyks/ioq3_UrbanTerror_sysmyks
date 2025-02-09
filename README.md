@@ -9,8 +9,6 @@
 - [ioq3 for Urban Terror 4](https://github.com/FrozenSand/ioq3-for-UrbanTerror-4)
 - [UrbanTerror434_mod by BFoxyfox](https://github.com/BFoxyfox/UrbanTerror434_mod)
 
-I started from the latest version and added several **TitanMod** mods to enhance the game experience.
-
 ## Custom Client Commands
 
 These custom commands are available to clients in the game:
