@@ -20,7 +20,7 @@ These custom commands are available to clients in the game:
 - **/load**: Load the saved position or state.
 - **/cg_ghost**: Enable ghost and fix.
 - **/help**: Display help for available commands.
-- **/svModInfo**: Display information about the current mods on the server.
+- **/modinfo**: Display information about the current mods on the server.
 
 ## Custom Server Commands
 
