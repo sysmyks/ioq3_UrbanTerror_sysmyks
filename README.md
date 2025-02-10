@@ -3,7 +3,7 @@
 
 ## Description
 
-**ioq3-update** is a custom version of the **ioquake3** engine for the **Urban Terror** game, incorporating modifications from **TitanMod**. This project builds upon the latest ioq3 version for Urban Terror 4, adding custom client and server commands to enhance gameplay and server management.
+**ioq3-sysmyks** is a custom version of the **ioquake3** engine for the **Urban Terror** game, incorporating modifications from **TitanMod**. This project builds upon the latest ioq3 version for Urban Terror 4, adding custom client and server commands to enhance gameplay and server management.
 
 ### Sources:
 - [ioq3 for Urban Terror 4](https://github.com/FrozenSand/ioq3-for-UrbanTerror-4)
