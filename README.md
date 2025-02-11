@@ -1,5 +1,5 @@
 
-# ioq3-update: Custom Urban Terror ioq3 ModJump
+# Custom Urban Terror ioq3 ModJump
 
 ## Description
 
