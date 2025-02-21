@@ -1763,7 +1763,7 @@ void SV_InfiniteStamina_fc(void)
     }
 
     if (cl->cm.infiniteStamina == 1) {
-        cl->cm.infiniteStamina = 0;
+        cl->cm.infiniteStamina = 2;
         Com_Printf("^7Infinite stamina disabled.\n");
     } else {
        
