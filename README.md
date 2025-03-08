@@ -30,6 +30,7 @@ These custom commands are designed for server admins and can be executed through
 - **/rcon serv_infinitestamina [player_name]**: Enable infinite stamina for the specified player.
 - **/rcon serv_infinitewalljumps [player_name]**: Enable infinite wall jumps for the specified player.  
 
-for build on window install mingw et sys 1.0  
-https://github.com/jonasstrandstedt/MinGW  
-and run MinGW\msys\1.0\msys.bat  
+## Installation
+for build on window install mingw et sys 1.0, https://github.com/jonasstrandstedt/MinGW  
+and run MinGW\msys\1.0\msys.bat 
+tape `cd 'your/project/makefile'`, and tape `make`!
